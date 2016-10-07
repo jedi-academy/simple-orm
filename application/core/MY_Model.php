@@ -14,7 +14,7 @@ require 'Entity.php';
  * @copyright           Copyright (c) 2010-2014, James L. Parry
  * ------------------------------------------------------------------------
  */
-class MY_Model extends CI_Model implements DataMapper {
+class MY_Model extends CI_Model implements DataMapperInterface {
 
 	protected $_tableName;   // Which table is this a model for?
 	protected $_keyField;	// name of the primary key field
@@ -26,9 +26,10 @@ class MY_Model extends CI_Model implements DataMapper {
 
 	/**
 	 * Constructor.
-	 * @param string $tablename Name of the RDB table
-	 * @param string $keyfield  Name of the primary key field
-	 * @param string $entityName  Class name of returned objects
+	 * 
+	 * @param string $tablename Name of the RDB table, if not the same as the container
+	 * @param string $keyfield  Name of the primary key field, if non-standard
+	 * @param string $entityName  Class name of returned objects, eg for active record
 	 */
 	function __construct($tablename = null, $keyfield = 'id', $entityName = 'Entity')
 	{
@@ -76,6 +77,7 @@ class MY_Model extends CI_Model implements DataMapper {
 	{
 		$names = $this->db->list_fields($this->_tableName);
 		$object = new $entityName;
+		$object->setMapper($this);
 		foreach ($names as $name)
 			$object->$name = "";
 		return $object;
@@ -104,7 +106,7 @@ class MY_Model extends CI_Model implements DataMapper {
 		$query = $this->db->get($this->_tableName);
 		if ($query->num_rows() < 1)
 			return null;
-		$result = Entity::create($query->row(),true);
+		$result = new $this->_entityName($query->row(),true);
 		return $result;
 	}
 

@@ -4,13 +4,18 @@ if (!defined('BASEPATH'))
 	exit('No direct script access allowed');
 
 /**
- * Generic data access abstraction.
+ * Generic data access abstraction, built on top of the query builder.
  *
+ * This *is* one form of Object Relational Mapping, and an example of
+ * a "Data Mapper" design pattern.
+ * 
+ * Yes, the word Interface in the name is redundant, but that is the "PHP way"
+ * 
  * @author		JLP
  * @copyright           Copyright (c) 2010-2016, James L. Parry
  * ------------------------------------------------------------------------
  */
-interface DataMapper {
+interface DataMapperInterface {
 //---------------------------------------------------------------------------
 //  Utility methods
 //---------------------------------------------------------------------------
@@ -105,4 +110,3 @@ interface DataMapper {
 	 */
 	function some($what, $which);
 }
-

@@ -1,80 +1,40 @@
 <?php
 
 /**
- * Entity model for use with our DataMapper.
+ * Entity model for use with our DataMapper, though it could be used by any model.
  * 
- * This is an implementation of the Active Record pattern.
+ * This is just an entity model, to which you would add
+ * business logic methods when you extend it.
+ * 
+ * There are no private properties, and public accessors/mutators, unlike
+ * a JavaBean - those are implied/injected by PHP/CodeIgniter automatically.
  * 
  * @todo Save original key(s) to know if an update should delete the original record
  *
  * @author		JLP
  * @copyright   Copyright (c) 2016, James L. Parry
  */
-class Entity implements ActiveRecord {
+class Entity {
 
-	protected static $_boss = null; // the DataMapper for this entity
-	protected static $_CI = null; // handle to CI
-	protected $_exists = false; // is this an existing record
+	protected static $_CI = null; // handle to CI, for convenience
 
 	/**
-	 * Constructor
+	 * Constructor.
+	 * 
+	 * @param array $fields	Associative array of initial properties & their values
+	 * @param boolean exists Ignored here
 	 */
 
-	public function __construct()
+	public function __construct($fields = null, $exists = false)
 	{
 		self::$_CI = &get_instance();
+		if ($fields != null) $this->merge($fields);
 	}
 
-	/**
-	 * Set the entity's DataMapper
-	 * 
-	 * @param DataMapper $mapper	The manager for such entities
-	 */
-	function setMapper($mapper = null)
-	{
-		if ($mapper instanceof DataMapper)
-			$this->_boss = $mapper;
-		else
-			$this->_mapper = null;
-	}
-
-	/**
-	 * Create a new record.
-	 * 
-	 * @param array $fields Associateive array with any initial properties
-	 * @return ActiveRecord an instance
-	 */
-	static function create($fields = null, $exists = false)
-	{
-		$entity = new Entity();
-		if ($fields != null)
-			$entity->merge($fields);
-		$entity->_exists = $exists;
-		return $entity;
-	}
-
-	/**
-	 * Save this entity.
-	 * 
-	 * Add or update as appropriate.
-	 */
-	function save()
-	{
-		if ($this->_exists)
-			self::$_boss->update($this);
-		else
-			self::$_boss->add($this);
-		$this->_exists = true;
-	}
-
-	/**
-	 * Delete this entity.
-	 */
-	function delete()
-	{
-		if ($this->_exists)
-			self::$_boss->delete($this);
-	}
+	//----------------------------------------------------------------
+	// Convenience methods to extract or merge properties using
+	// associative arrays, for convenient form handling.
+	//----------------------------------------------------------------
 
 	/**
 	 * Merge field values with those in the entity
@@ -83,20 +43,24 @@ class Entity implements ActiveRecord {
 	 */
 	function merge($fields = null)
 	{
-		foreach ($fields as $prop => $value)
-		{
-			$this->$prop = $value;
-		}
+		if ($fields != null)
+			foreach ($fields as $prop => $value)
+			{
+				// add or replace the entity's property
+				$this->$prop = $value;
+			}
 	}
 
 	/**
 	 * Extract the entity's properties as an associative array
+	 * @return array Associative array with property names as keys and their values as array values
 	 */
 	function fields()
 	{
 		$result = get_object_vars($record);
 		foreach ($result as $prop => $value)
 		{
+			// omit internal only properties
 			if (substr($prop, 0, 1) == '_')
 				unset($result[$prop]);
 		}
